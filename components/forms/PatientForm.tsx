@@ -12,7 +12,8 @@ import { UserFormValidation } from "@/lib/validation";
 
 import "react-phone-number-input/style.css";
 import CustomFormField, { FormFieldType } from "../CustomFormField";
-import SubmitButton from "../SubmitButton";
+import SubmitButton from "../SubmitButton"
+import { Control, FieldValues, FieldPath} from "react-hook-form";
 
 export const PatientForm = () => {
   const router = useRouter();

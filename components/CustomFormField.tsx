@@ -1,6 +1,8 @@
 
 'use client'
 
+import React from "react";
+
 import {
 	FormControl,
 	FormField,
@@ -11,12 +13,14 @@ import {
 } from "@/components/ui/form"
 
 import { Input } from "@/components/ui/input";
-import { Control } from "react-hook-form";
-import { Select, SelectContent, SelectTrigger, SelectValue } from "./ui/select";
+import { Control, FieldValues, FieldPath } from "react-hook-form";
+import { Select, SelectContent, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "./ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import Image from "next/image";
+import 'react-phone-number-input/style.css';
 import PhoneInput, { E164Number } from "react-phone-number-input";
+// import { E164Number } from "react-phone-number-input";
 import ReactDatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
@@ -31,7 +35,7 @@ export enum FormFieldType {
 	SKELETON = "skeleton",
 }
 
-interface CustomProps {
+interface CustomProps<T extends FieldValues = FieldValues> {
 	name: string;
 	label?: string;
 	placeholder?: string;
@@ -41,13 +45,13 @@ interface CustomProps {
 	dateFormat?: string;
 	showTimeSelect?: boolean;
 	children?: React.ReactNode;
-	renderSkeleton?: (field: any) => React.ReactNode;
-	control: Control<any>;
+	renderSkeleton?: (field: T) => React.ReactNode;
+	control: Control<T>;
 	fieldType: FormFieldType;
 }
 
 
-const RenderInput = ({ field, props }: { field: any; props: CustomProps }) => {
+const RenderInput = ({ field, props }: { field: FieldValues; props: CustomProps }) => {
   switch (props.fieldType) {
     case FormFieldType.INPUT:
       return (
@@ -124,7 +128,7 @@ const RenderInput = ({ field, props }: { field: any; props: CustomProps }) => {
             <ReactDatePicker
               showTimeSelect={props.showTimeSelect ?? false}
               selected={field.value}
-              onChange={(date: Date) => field.onChange(date)}
+              onChange={(date: Date | null) => field.onChange(date)}
               timeInputLabel="Time:"
               dateFormat={props.dateFormat ?? "MM/dd/yyyy"}
               wrapperClassName="date-picker"
