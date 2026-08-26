@@ -3,17 +3,22 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { type Control, type FieldValues, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { Form } from "@/components/ui/form";
-import { createUser } from "@/lib/actions/patient.actions";
 import { UserFormValidation } from "@/lib/validation";
 
 import "react-phone-number-input/style.css";
 import CustomFormField, { FormFieldType } from "../CustomFormField";
-import SubmitButton from "../SubmitButton"
-import { Control, FieldValues, FieldPath} from "react-hook-form";
+import SubmitButton from "../SubmitButton";
+
+const createUser = async (user: { name: string; email: string; phone: string }) => {
+  return {
+    $id: "placeholder-user-id",
+    ...user,
+  };
+};
 
 export const PatientForm = () => {
   const router = useRouter();
@@ -87,6 +92,7 @@ export const PatientForm = () => {
         />
 
         <SubmitButton isLoading={isLoading}>Get Started</SubmitButton>
+        {/* <SubmitButton disabled={isLoading} isLoading={isLoading}>Get Started</SubmitButton> */}
       </form>
     </Form>
   );

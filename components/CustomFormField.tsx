@@ -36,22 +36,22 @@ export enum FormFieldType {
 }
 
 interface CustomProps<T extends FieldValues = FieldValues> {
-	name: string;
-	label?: string;
-	placeholder?: string;
-	iconAlt?: string;
-	iconSrc?: string;
-	disabled?: boolean;
-	dateFormat?: string;
-	showTimeSelect?: boolean;
-	children?: React.ReactNode;
-	renderSkeleton?: (field: T) => React.ReactNode;
-	control: Control<T>;
-	fieldType: FormFieldType;
+  name: FieldPath<T>;
+  label?: string;
+  placeholder?: string;
+  iconAlt?: string;
+  iconSrc?: string;
+  disabled?: boolean;
+  dateFormat?: string;
+  showTimeSelect?: boolean;
+  children?: React.ReactNode;
+  renderSkeleton?: (field: any) => React.ReactNode;
+  control: Control<T>;
+  fieldType: FormFieldType;
 }
 
 
-const RenderInput = ({ field, props }: { field: FieldValues; props: CustomProps }) => {
+const RenderInput = <T extends FieldValues>({ field, props }: { field: any; props: CustomProps<T> }) => {
   switch (props.fieldType) {
     case FormFieldType.INPUT:
       return (
@@ -159,22 +159,22 @@ const RenderInput = ({ field, props }: { field: FieldValues; props: CustomProps 
 };
 
 
-const CustomFormField = (props: CustomProps) => {
-	const { control, name, label } = props;
+const CustomFormField = <T extends FieldValues = FieldValues>(props: CustomProps<T>) => {
+  const { control, name, label } = props;
   return (
-	<FormField 
-		control={control}
-		name={name}
-		render={({ field }) => (
-			<FormItem>
-				{props.fieldType !== FormFieldType.CHECKBOX && label && (
-					<FormLabel>{label}</FormLabel> 
-				)}
-				<RenderInput field={field} props= { props } />
-				<FormMessage className="shad-error" />
-			</FormItem>
-		)}
-	/>
+    <FormField<T>
+      control={control}
+      name={name}
+      render={({ field }) => (
+        <FormItem>
+          {props.fieldType !== FormFieldType.CHECKBOX && label && (
+            <FormLabel>{label}</FormLabel>
+          )}
+          <RenderInput field={field} props={props} />
+          <FormMessage className="shad-error" />
+        </FormItem>
+      )}
+    />
   )
 }
 
