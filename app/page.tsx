@@ -1,7 +1,7 @@
 import Image from "next/image"
-import Link from "next/link"
 
 import { PatientForm } from "@/components/forms/PatientForm"
+import { PasskeyModal } from "@/components/PasskeyModal"
 
 export default function Home() {
   return (
@@ -21,9 +21,7 @@ export default function Home() {
             <p className="justify-items-end text-dark-600">
               © 2026 CarePlus. All rights reserved.
             </p>
-            <Link href="/?admin=true" className="text-green-500">
-              Admin
-            </Link>
+            <PasskeyModal />
           </div>
         </div>
       </section>

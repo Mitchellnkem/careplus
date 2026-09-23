@@ -1,4 +1,5 @@
 import type { Appointment, Patient, Status } from "@/types/appwrite.types";
+import { getPatient } from "@/lib/actions/patient.actions";
 
 const APPOINTMENTS_KEY = "careplus.appointments";
 
@@ -14,6 +15,7 @@ const readAppointments = (): Appointment[] => {
 const saveAppointments = (appointments: Appointment[]) => {
   if (typeof window !== "undefined") {
     window.localStorage.setItem(APPOINTMENTS_KEY, JSON.stringify(appointments));
+    window.dispatchEvent(new Event("careplus:appointments-changed"));
   }
 };
 
@@ -28,9 +30,11 @@ type CreateAppointmentInput = {
 };
 
 export const createAppointment = async (input: CreateAppointmentInput): Promise<Appointment> => {
-  const patient = typeof input.patient === "string"
-    ? ({ $id: input.patient, name: "Patient" } as Patient)
-    : input.patient;
+  const patient =
+    typeof input.patient === "string"
+      ? ((await getPatient(input.userId)) ??
+        ({ $id: input.patient, name: "Patient" } as Patient))
+      : input.patient;
   const appointment: Appointment = {
     ...input,
     $id: crypto.randomUUID(),
@@ -69,7 +73,13 @@ export const getAppointment = async (appointmentId: string): Promise<Appointment
   readAppointments().find((appointment) => appointment.$id === appointmentId) ?? null;
 
 export const getRecentAppointmentList = async () => {
-  const documents = readAppointments().sort(
+  const hydratedAppointments = await Promise.all(
+    readAppointments().map(async (appointment) => ({
+      ...appointment,
+      patient: (await getPatient(appointment.userId)) ?? appointment.patient,
+    }))
+  );
+  const documents = hydratedAppointments.sort(
     (a, b) => new Date(b.schedule).getTime() - new Date(a.schedule).getTime()
   );
   return {

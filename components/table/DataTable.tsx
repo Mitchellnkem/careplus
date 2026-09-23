@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import type { ReactNode } from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 
@@ -26,6 +26,10 @@ export function DataTable<TData>({ columns, data }: DataTableProps<TData>) {
   const [page, setPage] = useState(0);
   const pageCount = Math.max(1, Math.ceil(data.length / PAGE_SIZE));
   const rows = data.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
+
+  useEffect(() => {
+    setPage((currentPage) => Math.min(currentPage, pageCount - 1));
+  }, [pageCount]);
 
   return (
     <div className="data-table">
