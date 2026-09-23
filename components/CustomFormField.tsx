@@ -5,6 +5,7 @@ import React from "react";
 
 import {
 	FormControl,
+  FormDescription,
 	FormField,
 	FormItem,
 	FormLabel,
@@ -34,6 +35,14 @@ export enum FormFieldType {
 	SKELETON = "skeleton",
 }
 
+const toDateInputValue = (value: unknown, includeTime: boolean) => {
+  if (!(value instanceof Date) || Number.isNaN(value.getTime())) return "";
+
+  return new Date(value.getTime() - value.getTimezoneOffset() * 60000)
+    .toISOString()
+    .slice(0, includeTime ? 16 : 10);
+};
+
 interface CustomProps<
   T extends FieldValues = FieldValues,
   TTransformedValues extends FieldValues | undefined = undefined,
@@ -41,6 +50,9 @@ interface CustomProps<
   name: FieldPath<T>;
   label?: string;
   placeholder?: string;
+  description?: string;
+  autoComplete?: string;
+  inputMode?: React.HTMLAttributes<HTMLInputElement>["inputMode"];
   iconAlt?: string;
   iconSrc?: string;
   disabled?: boolean;
@@ -78,6 +90,8 @@ const RenderInput = <
           <FormControl>
             <Input
               placeholder={props.placeholder}
+              autoComplete={props.autoComplete}
+              inputMode={props.inputMode}
               {...field}
               className="shad-input border-0"
             />
@@ -101,8 +115,16 @@ const RenderInput = <
           <Input
             type="tel"
             placeholder={props.placeholder}
+            autoComplete={props.autoComplete ?? "tel"}
+            inputMode="tel"
+            maxLength={16}
+            pattern="^\+[1-9]\d{6,14}$"
             value={String(field.value ?? "")}
-            onChange={(event) => field.onChange(event.target.value)}
+            onChange={(event) => {
+              const rawValue = event.target.value;
+              const digits = rawValue.replace(/\D/g, "").slice(0, 15);
+              field.onChange(rawValue.trimStart().startsWith("+") ? `+${digits}` : digits);
+            }}
             className="input-phone"
           />
         </FormControl>
@@ -135,15 +157,10 @@ const RenderInput = <
           <FormControl>
             <Input
               type={props.showTimeSelect ? "datetime-local" : "date"}
-              value={
-                field.value instanceof Date
-                  ? new Date(
-                      field.value.getTime() - field.value.getTimezoneOffset() * 60000
-                    )
-                      .toISOString()
-                      .slice(0, props.showTimeSelect ? 16 : 10)
-                  : ""
-              }
+              value={toDateInputValue(
+                field.value,
+                props.showTimeSelect ?? false
+              )}
               onChange={(event) => field.onChange(new Date(event.target.value))}
               className="date-picker border-0 bg-dark-400 text-white"
             />
@@ -188,6 +205,11 @@ const CustomFormField = <
             <FormLabel>{label}</FormLabel>
           )}
           <RenderInput field={field} props={props} />
+          {props.description && (
+            <FormDescription className="text-xs text-dark-600">
+              {props.description}
+            </FormDescription>
+          )}
           <FormMessage className="shad-error" />
         </FormItem>
       )}

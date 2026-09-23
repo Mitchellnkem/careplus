@@ -5,6 +5,7 @@ export type User = {
   name: string;
   email: string;
   phone: string;
+  preferredLanguage?: string;
 };
 
 export type Patient = User & {

@@ -14,6 +14,7 @@ export default function RegisterPage() {
     name: searchParams.get("name") ?? "",
     email: searchParams.get("email") ?? "",
     phone: searchParams.get("phone") ?? "",
+    preferredLanguage: searchParams.get("language") ?? undefined,
   };
 
   return (
