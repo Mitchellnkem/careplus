@@ -6,23 +6,22 @@ import React from "react";
 import {
 	FormControl,
 	FormField,
-	FormDescription,
 	FormItem,
 	FormLabel,
 	FormMessage,
 } from "@/components/ui/form"
 
 import { Input } from "@/components/ui/input";
-import { Control, FieldValues, FieldPath } from "react-hook-form";
+import {
+  type Control,
+  type ControllerRenderProps,
+  type FieldPath,
+  type FieldValues,
+} from "react-hook-form";
 import { Select, SelectContent, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "./ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import Image from "next/image";
-import 'react-phone-number-input/style.css';
-import PhoneInput, { E164Number } from "react-phone-number-input";
-// import { E164Number } from "react-phone-number-input";
-import ReactDatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
 
 
 export enum FormFieldType {
@@ -35,7 +34,10 @@ export enum FormFieldType {
 	SKELETON = "skeleton",
 }
 
-interface CustomProps<T extends FieldValues = FieldValues> {
+interface CustomProps<
+  T extends FieldValues = FieldValues,
+  TTransformedValues extends FieldValues | undefined = undefined,
+> {
   name: FieldPath<T>;
   label?: string;
   placeholder?: string;
@@ -45,14 +47,21 @@ interface CustomProps<T extends FieldValues = FieldValues> {
   dateFormat?: string;
   showTimeSelect?: boolean;
   children?: React.ReactNode;
-  // renderSkeleton?: (field: any) => React.ReactNode;
-  renderSkeleton?: (field: ControllerRenderProps<T, FieldPath<T>>) => (field: any) => React.ReactNode;
-  control: Control<T>;
+  renderSkeleton?: (
+    field: ControllerRenderProps<T, FieldPath<T>>
+  ) => React.ReactNode;
+  control: Control<T, unknown, TTransformedValues>;
   fieldType: FormFieldType;
 }
 
 
-const RenderInput = <T extends FieldValues>({ field, props }: { field: any; props: CustomProps<T> }) => {
+const RenderInput = <
+  T extends FieldValues,
+  TTransformedValues extends FieldValues | undefined = undefined,
+>({ field, props }: {
+  field: ControllerRenderProps<T, FieldPath<T>>;
+  props: CustomProps<T, TTransformedValues>;
+}) => {
   switch (props.fieldType) {
     case FormFieldType.INPUT:
       return (
@@ -89,13 +98,11 @@ const RenderInput = <T extends FieldValues>({ field, props }: { field: any; prop
     case FormFieldType.PHONE_INPUT:
       return (
         <FormControl>
-          <PhoneInput
-            defaultCountry="US"
+          <Input
+            type="tel"
             placeholder={props.placeholder}
-            international
-            withCountryCallingCode
-            value={field.value as E164Number | undefined}
-            onChange={field.onChange}
+            value={String(field.value ?? "")}
+            onChange={(event) => field.onChange(event.target.value)}
             className="input-phone"
           />
         </FormControl>
@@ -126,13 +133,19 @@ const RenderInput = <T extends FieldValues>({ field, props }: { field: any; prop
             className="ml-2"
           />
           <FormControl>
-            <ReactDatePicker
-              showTimeSelect={props.showTimeSelect ?? false}
-              selected={field.value}
-              onChange={(date: Date | null) => field.onChange(date)}
-              timeInputLabel="Time:"
-              dateFormat={props.dateFormat ?? "MM/dd/yyyy"}
-              wrapperClassName="date-picker"
+            <Input
+              type={props.showTimeSelect ? "datetime-local" : "date"}
+              value={
+                field.value instanceof Date
+                  ? new Date(
+                      field.value.getTime() - field.value.getTimezoneOffset() * 60000
+                    )
+                      .toISOString()
+                      .slice(0, props.showTimeSelect ? 16 : 10)
+                  : ""
+              }
+              onChange={(event) => field.onChange(new Date(event.target.value))}
+              className="date-picker border-0 bg-dark-400 text-white"
             />
           </FormControl>
         </div>
@@ -160,10 +173,13 @@ const RenderInput = <T extends FieldValues>({ field, props }: { field: any; prop
 };
 
 
-const CustomFormField = <T extends FieldValues = FieldValues>(props: CustomProps<T>) => {
+const CustomFormField = <
+  T extends FieldValues = FieldValues,
+  TTransformedValues extends FieldValues | undefined = undefined,
+>(props: CustomProps<T, TTransformedValues>) => {
   const { control, name, label } = props;
   return (
-    <FormField<T>
+    <FormField<T, FieldPath<T>, TTransformedValues>
       control={control}
       name={name}
       render={({ field }) => (

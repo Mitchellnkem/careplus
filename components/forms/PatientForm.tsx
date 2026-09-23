@@ -3,22 +3,15 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { type Control, type FieldValues, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { Form } from "@/components/ui/form";
+import { createUser } from "@/lib/actions/patient.actions";
 import { UserFormValidation } from "@/lib/validation";
 
-import "react-phone-number-input/style.css";
 import CustomFormField, { FormFieldType } from "../CustomFormField";
 import SubmitButton from "../SubmitButton";
-
-const createUser = async (user: { name: string; email: string; phone: string }) => {
-  return {
-    $id: "placeholder-user-id",
-    ...user,
-  };
-};
 
 export const PatientForm = () => {
   const router = useRouter();
@@ -46,7 +39,12 @@ export const PatientForm = () => {
       const newUser = await createUser(user);
 
       if (newUser) {
-        router.push(`/patients/${newUser.$id}/register`);
+        const query = new URLSearchParams({
+          name: newUser.name,
+          email: newUser.email,
+          phone: newUser.phone,
+        });
+        router.push(`/patients/${newUser.$id}/register?${query.toString()}`);
       }
     } catch (error) {
       console.log(error);
@@ -92,7 +90,6 @@ export const PatientForm = () => {
         />
 
         <SubmitButton isLoading={isLoading}>Get Started</SubmitButton>
-        {/* <SubmitButton disabled={isLoading} isLoading={isLoading}>Get Started</SubmitButton> */}
       </form>
     </Form>
   );

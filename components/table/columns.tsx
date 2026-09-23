@@ -1,6 +1,5 @@
 "use client";
 
-import { ColumnDef } from "@tanstack/react-table";
 import Image from "next/image";
 
 import { Doctors } from "@/constants";
@@ -9,6 +8,7 @@ import { Appointment } from "@/types/appwrite.types";
 
 import { AppointmentModal } from "../AppointmentModal";
 import { StatusBadge } from "../StatusBadge";
+import type { ColumnDef } from "./DataTable";
 
 export const columns: ColumnDef<Appointment>[] = [
   {
@@ -62,7 +62,7 @@ export const columns: ColumnDef<Appointment>[] = [
       return (
         <div className="flex items-center gap-3">
           <Image
-            src={doctor?.image!}
+            src={doctor?.image ?? "/assets/icons/user.svg"}
             alt="doctor"
             width={100}
             height={100}
