@@ -1,12 +1,24 @@
 import type { Appointment, Patient, Status } from "@/types/appwrite.types";
 import { getPatient } from "@/lib/actions/patient.actions";
 
-const APPOINTMENTS_KEY = "careplus.appointments";
+export const APPOINTMENTS_STORAGE_KEY = "careplus.appointments";
+
+const isAppointmentStatus = (value: unknown): value is Status =>
+  value === "pending" || value === "scheduled" || value === "cancelled";
 
 const readAppointments = (): Appointment[] => {
   if (typeof window === "undefined") return [];
   try {
-    return JSON.parse(window.localStorage.getItem(APPOINTMENTS_KEY) ?? "[]") as Appointment[];
+    const appointments = JSON.parse(
+      window.localStorage.getItem(APPOINTMENTS_STORAGE_KEY) ?? "[]"
+    ) as Appointment[];
+
+    return appointments.map((appointment) => ({
+      ...appointment,
+      status: isAppointmentStatus(appointment.status)
+        ? appointment.status
+        : "pending",
+    }));
   } catch {
     return [];
   }
@@ -14,7 +26,10 @@ const readAppointments = (): Appointment[] => {
 
 const saveAppointments = (appointments: Appointment[]) => {
   if (typeof window !== "undefined") {
-    window.localStorage.setItem(APPOINTMENTS_KEY, JSON.stringify(appointments));
+    window.localStorage.setItem(
+      APPOINTMENTS_STORAGE_KEY,
+      JSON.stringify(appointments)
+    );
     window.dispatchEvent(new Event("careplus:appointments-changed"));
   }
 };

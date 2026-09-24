@@ -8,9 +8,15 @@ const statusStyles: Record<Status, string> = {
   cancelled: "bg-red-600 text-red-500",
 };
 
+const statusLabels: Record<Status, string> = {
+  scheduled: "Scheduled",
+  pending: "Pending review",
+  cancelled: "Cancelled",
+};
+
 export const StatusBadge = ({ status }: { status: Status }) => (
   <div className={`status-badge ${statusStyles[status]}`}>
     <Image src={`/assets/icons/${status}.svg`} alt="" width={18} height={18} />
-    <span className="capitalize">{status}</span>
+    <span>{statusLabels[status]}</span>
   </div>
 );

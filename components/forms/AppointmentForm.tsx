@@ -35,6 +35,7 @@ export const AppointmentForm = ({
 }) => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [submitError, setSubmitError] = useState("");
   const [initialSchedule] = useState(() => new Date());
 
   const AppointmentFormValidation = getAppointmentSchema(type);
@@ -56,6 +57,7 @@ export const AppointmentForm = ({
     values: z.infer<typeof AppointmentFormValidation>
   ) => {
     setIsLoading(true);
+    setSubmitError("");
 
     let status;
     switch (type) {
@@ -110,10 +112,11 @@ export const AppointmentForm = ({
           form.reset();
         }
       }
-    } catch (error) {
-      console.log(error);
+    } catch {
+      setSubmitError("We could not save this appointment. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   let buttonLabel;
@@ -206,6 +209,12 @@ export const AppointmentForm = ({
             label="Reason for cancellation"
             placeholder="Urgent meeting came up"
           />
+        )}
+
+        {submitError && (
+          <p role="alert" className="text-sm text-red-400">
+            {submitError}
+          </p>
         )}
 
         <SubmitButton

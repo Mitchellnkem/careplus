@@ -1,6 +1,6 @@
 "use client";
 
-import { LogOut, Search } from "lucide-react";
+import { LogOut, RefreshCw, Search } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -10,7 +10,10 @@ import { DataTable } from "@/components/table/DataTable";
 import { columns } from "@/components/table/columns";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { getRecentAppointmentList } from "@/lib/actions/appointment.actions";
+import {
+  APPOINTMENTS_STORAGE_KEY,
+  getRecentAppointmentList,
+} from "@/lib/actions/appointment.actions";
 import type { Appointment, Status } from "@/types/appwrite.types";
 
 type AppointmentSummary = {
@@ -33,11 +36,17 @@ export default function AdminPage() {
   const router = useRouter();
   const [authorized, setAuthorized] = useState(false);
   const [summary, setSummary] = useState<AppointmentSummary>(emptySummary);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<"all" | Status>("all");
 
   const loadAppointments = useCallback(async () => {
-    setSummary(await getRecentAppointmentList());
+    setIsRefreshing(true);
+    try {
+      setSummary(await getRecentAppointmentList());
+    } finally {
+      setIsRefreshing(false);
+    }
   }, []);
 
   useEffect(() => {
@@ -48,9 +57,19 @@ export default function AdminPage() {
 
     setAuthorized(true);
     void loadAppointments();
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key === APPOINTMENTS_STORAGE_KEY) void loadAppointments();
+    };
+    const handleFocus = () => void loadAppointments();
+
     window.addEventListener("careplus:appointments-changed", loadAppointments);
-    return () =>
+    window.addEventListener("storage", handleStorage);
+    window.addEventListener("focus", handleFocus);
+    return () => {
       window.removeEventListener("careplus:appointments-changed", loadAppointments);
+      window.removeEventListener("storage", handleStorage);
+      window.removeEventListener("focus", handleFocus);
+    };
   }, [loadAppointments, router]);
 
   const appointments = useMemo(() => {
@@ -120,6 +139,16 @@ export default function AdminPage() {
               <p className="text-sm text-dark-700">{summary.totalCount} appointment{summary.totalCount === 1 ? "" : "s"} recorded</p>
             </div>
             <div className="flex flex-col gap-3 sm:flex-row">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => void loadAppointments()}
+                disabled={isRefreshing}
+                className="h-10 border-dark-500 bg-dark-400 text-dark-700"
+              >
+                <RefreshCw className={`size-4 ${isRefreshing ? "animate-spin" : ""}`} />
+                Refresh
+              </Button>
               <label className="relative min-w-64">
                 <span className="sr-only">Search appointments</span>
                 <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-dark-600" />
